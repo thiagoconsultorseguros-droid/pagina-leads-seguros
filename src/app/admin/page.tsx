@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { Shield, Users, Car, Bike, Mail, Phone, Calendar, RefreshCw } from 'lucide-react'
+import { Shield, Users, Car, Bike, Mail, Phone, Calendar, RefreshCw, AlertCircle } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 
 interface Lead {
@@ -26,6 +26,12 @@ export default function AdminLeads() {
   const fetchLeads = async () => {
     try {
       setLoading(true)
+      
+      // Verificar se o cliente Supabase está disponível
+      if (!supabase) {
+        throw new Error('Supabase não está configurado. Verifique as variáveis de ambiente.')
+      }
+
       const { data, error: supabaseError } = await supabase
         .from('leads_seguros')
         .select('*')
@@ -64,6 +70,32 @@ export default function AdminLeads() {
       const leadDate = new Date(lead.created_at).toDateString()
       return today === leadDate
     }).length
+  }
+
+  // Se o Supabase não estiver configurado, mostrar aviso
+  if (!supabase) {
+    return (
+      <div className="min-h-screen bg-gray-50 p-4 md:p-8">
+        <div className="max-w-4xl mx-auto">
+          <Card className="border-orange-200 bg-orange-50">
+            <CardContent className="p-6">
+              <div className="flex items-center space-x-3">
+                <AlertCircle className="w-6 h-6 text-orange-600" />
+                <div>
+                  <h3 className="font-semibold text-orange-800">Configuração Necessária</h3>
+                  <p className="text-orange-700 mt-1">
+                    Para acessar o painel de leads, você precisa configurar as variáveis de ambiente do Supabase.
+                  </p>
+                  <p className="text-sm text-orange-600 mt-2">
+                    Configure NEXT_PUBLIC_SUPABASE_URL e NEXT_PUBLIC_SUPABASE_ANON_KEY no seu arquivo .env.local
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    )
   }
 
   return (
